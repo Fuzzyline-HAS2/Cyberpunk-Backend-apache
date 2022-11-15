@@ -38,17 +38,19 @@
     switch($DB_request){
         case "ReceiveMine" :
             //[table]device : shift_machine = 0으로 만들어 주는 쿼리 
-            $select = "UPDATE $DB_table SET shift_machine = 0 WHERE mac = \"$DB_mac\"";
-            $result = mysqli_query($conn, $select);
             //[table]device : mac으로 name,type,theme 찾는 쿼리
             $select = "SELECT device_name,device_type,theme FROM $DB_table WHERE mac = \"$DB_mac\"";
             $device_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
             //자기 장치 데이터 수신 쿼리
-            if($device_array['theme'] == 'waiting'){
-                $select = "SELECT * FROM $DB_table WHERE device_name = '{$device_array['device_name']}'";
-            }
-            else{
-                $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = '{$device_array['device_name']}'";
+            if($device_array['device_type'] !== 'mp3'){
+                $select = "UPDATE $DB_table SET shift_machine = 0 WHERE mac = \"$DB_mac\"";
+                $result = mysqli_query($conn, $select);
+                if($device_array['theme'] == 'waiting'){
+                    $select = "SELECT * FROM $DB_table WHERE device_name = '{$device_array['device_name']}'";
+                }
+                else{
+                    $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = '{$device_array['device_name']}'";
+                }
             }
             break;
         case "Receive" :
@@ -57,6 +59,15 @@
             $device_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
             //원하는 장치 데이터 수신 쿼리
             $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = '{$device_array['device_name']}'";
+            break;
+        case "ReceiveMP3" :
+            //[table]device : 장치명으로 name,type,theme 찾는 쿼리
+            $select = "UPDATE $DB_table SET shift_machine = shift_machine-1 WHERE device_name = \"$DB_key\"";
+            $result = mysqli_query($conn, $select);
+            $select = "SELECT device_name,device_type,theme FROM $DB_table WHERE device_name = \"$DB_key\"";
+            $device_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
+            //원하는 장치 데이터 수신 쿼리
+            $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = $DB_value";
             break;
         case "Loop" :
             $select = "SELECT shift_machine,watchdog FROM $DB_table WHERE mac = \"$DB_mac\"" ;
@@ -106,12 +117,21 @@
                     mysqli_query($conn, $select);
                 }
                 break;
+            case "folder_num": 
+                $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = $DB_value WHERE device_name = '{$device_array['device_name']}'";
+                mysqli_query($conn, $select);
+                break;
+            case "file_num": 
+                $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = $DB_value WHERE device_name = '{$device_array['device_name']}'";
+                mysqli_query($conn, $select);
+                break;
             default :
                 break;
         }
         //shift_machine +1 해주는 부분. send를 하고난 뒤 항상 더해주기 
-        $select = "UPDATE $DB_table SET shift_machine = {$device_array['shift_machine']} + 1 WHERE device_name = '{$device_array['device_name']}'";
-        
+        if($device_array['device_type'] !== mp3){
+            $select = "UPDATE $DB_table SET shift_machine = {$device_array['shift_machine']} + 1 WHERE device_name = '{$device_array['device_name']}'";
+        }
         //send 요청시 node.js로 새로고침 요청
         if($device_array['device_type'] === 'iotglove'){
             file_get_contents('http://localhost:5000/api/iotglove_php_request');
