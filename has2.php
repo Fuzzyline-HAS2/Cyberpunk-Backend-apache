@@ -45,21 +45,38 @@
             if($device_array['device_type'] !== 'mp3'){
                 $select = "UPDATE $DB_table SET shift_machine = 0 WHERE mac = \"$DB_mac\"";
                 $result = mysqli_query($conn, $select);
-                if($device_array['theme'] == 'waiting'){
-                    $select = "SELECT * FROM $DB_table WHERE device_name = '{$device_array['device_name']}'";
+                if($device_array['device_type'] == 'iotglove'){
+                    $select = "SELECT * FROM {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." WHERE device_name = '{$device_array['device_name']}'";
                 }
                 else{
                     $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = '{$device_array['device_name']}'";
                 }
-            }
+                //ReceiveMine일때 ON/OFF 확인용으로 새로고침 , mp3 제외.
+                if($device_array['device_type'] === 'iotglove'){
+                    file_get_contents('http://localhost:5000/api/iotglove_php_request');
+                }
+                else {
+                    if($device_array['theme'] === 'cyberpunk'){
+                        file_get_contents('http://localhost:5000/api/cyberpunk_php_request');
+                    }
+                    else if($device_array['theme'] === 'deadland'){
+                        file_get_contents('http://localhost:5000/api/deadland_php_request');
+                    }
+                }
+            } 
             break;
         case "Receive" :
             //[table]device : 장치명으로 name,type,theme 찾는 쿼리
             $select = "SELECT device_name,device_type,theme FROM $DB_table WHERE device_name = \"$DB_key\"";
             $device_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
             //원하는 장치 데이터 수신 쿼리
-            $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = '{$device_array['device_name']}'";
-            break;
+            if($device_array['device_type'] == 'iotglove'){
+                $select = "SELECT * FROM {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." WHERE device_name = '{$device_array['device_name']}'";
+            }
+            else {
+                $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = '{$device_array['device_name']}'";
+            }
+                break;
         case "ReceiveMP3" :
             //[table]device : 장치명으로 name,type,theme 찾는 쿼리
             $select = "UPDATE $DB_table SET shift_machine = shift_machine-1 WHERE device_name = \"$DB_key\"";
@@ -89,33 +106,9 @@
                 $select = "UPDATE $DB_table SET $DB_column = $DB_value WHERE device_name = '{$device_array['device_name']}'";
                 mysqli_query($conn, $select);
                 break;
-            case "life_chip":
-                $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = life_chip + $DB_value WHERE device_name = '{$device_array['device_name']}'";
+            case "watchdog":
+                $select = "UPDATE $DB_table SET $DB_column = $DB_value WHERE device_name = '{$device_array['device_name']}'";
                 mysqli_query($conn, $select);
-                break;
-            case "taken_chip":
-                $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = taken_chip + $DB_value WHERE device_name = '{$device_array['device_name']}'";
-                mysqli_query($conn, $select);
-                break;
-            case "battery_pack":
-                $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = battery_pack + $DB_value WHERE device_name = '{$device_array['device_name']}'";
-                echo($select);
-                mysqli_query($conn, $select);
-                break;
-            case "role" :
-                $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = \"$DB_value\" WHERE device_name = '{$device_array['device_name']}'";
-                mysqli_query($conn, $select);
-                break;
-            case "exp": 
-                $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = exp + $DB_value WHERE device_name = '{$device_array['device_name']}'";
-                mysqli_query($conn, $select);
-                $now_exp = $theme_array['exp'] + $DB_value;
-                if($now_exp >= $theme_array['max_exp']){
-                    $select =  "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET exp = exp - max_exp, max_exp = max_exp + 10, lv = lv + 1 WHERE device_name = '{$device_array['device_name']}'";
-                    mysqli_query($conn, $select);
-                    $select =  "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET skill_point = skill_point + 1";
-                    mysqli_query($conn, $select);
-                }
                 break;
             case "folder_num": 
                 $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = $DB_value WHERE device_name = '{$device_array['device_name']}'";
@@ -125,7 +118,24 @@
                 $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = $DB_value WHERE device_name = '{$device_array['device_name']}'";
                 mysqli_query($conn, $select);
                 break;
-            default :
+            default : 
+                if($device_array['device_type'] == 'iotglove'){
+                    if($DB_column == 'device_state' || $DB_column == 'game_state'){
+                        $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                    }
+                    else{
+                        $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = $DB_column + $DB_value WHERE device_name = '{$device_array['device_name']}'";
+                    }
+                }
+                else{
+                    if($DB_column == 'device_state' || $DB_column == 'game_state'){
+                        $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                    }
+                    else{//life_chip, taken_chip, battery_pack, exp
+                        $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = $DB_column + $DB_value WHERE device_name = '{$device_array['device_name']}'";
+                    }
+                }
+                mysqli_query($conn, $select);
                 break;
         }
         //shift_machine +1 해주는 부분. send를 하고난 뒤 항상 더해주기 
