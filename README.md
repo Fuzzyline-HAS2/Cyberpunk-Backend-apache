@@ -58,6 +58,7 @@ restore를 통해 로컬 변경상황을 제거한 뒤 pull을 해주면 된다.
 [MySQL] has2 스키마
 
 ‼ manage_state는 받고 적용한 뒤 장치가 정상적인 작동을 하면 비워주기  
+‼ 장치 오류나면 device_state에 오류난 장치명 입력하기 (ex.RFID) 
 
 ### device
 
