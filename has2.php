@@ -98,7 +98,12 @@
         $select = "SELECT device_name,device_type,theme,shift_machine FROM $DB_table WHERE device_name = \"$DB_key\"";
         $device_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
         //원하는 장치 데이터 수신 쿼리
-        $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = \"$DB_key\"";
+        if($device_array['device_type']==='iotglove'){
+            $select = "SELECT * FROM {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." WHERE device_name = \"$DB_key\"";
+        }
+        else{
+            $select = "SELECT * FROM {$device_array['theme']}_{$device_array['device_type']} WHERE device_name = \"$DB_key\"";
+        }
         $theme_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
         //send 데이터 쿼리 만들어 전송하는 작업 
         switch($DB_column){
@@ -122,6 +127,48 @@
                 if($device_array['device_type'] == 'iotglove'){
                     if($DB_column == 'device_state' || $DB_column == 'game_state'){
                         $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                    }
+                    else if($DB_column == 'tagger_name'){
+                        $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                    }
+                    else if($DB_column == 'location'){ //술래위치가 변경되면 모든 플레이어와의 위치를 비교 & 생존자 위치가 변경되면 그 생존자와 술래의 위치만 비교 
+                        //같은방이면 vibe=2, 옆방이면 vibe=1, 멀면 vibe=0
+
+                        //먼저 변경된 iotglove 위치 변경한 뒤 비교
+                        $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                        mysqli_query($conn, $select);
+
+                        //위치 변경된 iotglove가 술래(tagger)일 때
+                        if($theme_array['role'] === 'tagger'){
+                            for($i = 1;$i<=8;$i++){
+                                $select = "SELECT device_name,role,location FROM {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." WHERE device_name= '".substr($device_array['device_name'],0,2)."P".$i."'";
+                                $player_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
+                                if($player_array['location'] == $DB_value){ //같은방일때 vibe=2
+                                    $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET vibe = 2 WHERE device_name = '".substr($device_array['device_name'],0,2)."P".$i."'";
+                                    mysqli_query($conn, $select);
+                                }
+                                else{ //같은방이 아닐때 진동 0 -> vibe=0
+                                    $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET vibe = 0 WHERE device_name = '".substr($device_array['device_name'],0,2)."P".$i."'";
+                                    mysqli_query($conn, $select);
+                                }
+                            }
+                        }
+                        //위치 변경된 iotglove가 생존자(player)일 때
+                        else{ //player
+                            //술래 찾아내기 
+                            $select = "SELECT device_name,role,location FROM {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." WHERE role = 'tagger'";
+                            $player_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
+                            if($player_array['location'] == $DB_value){ //같은방일때 vibe=2
+                                $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET vibe = 2 WHERE device_name = '{$theme_array['device_name']}'";
+                                mysqli_query($conn, $select);
+                            }
+                            else{ //같은방이 아닐때 진동 0 -> vibe=0
+                                $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET vibe = 0 WHERE device_name = '".substr($device_array['device_name'],0,2)."P".$i."'";
+                                mysqli_query($conn, $select);
+                            }
+                        }
+                        // $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+
                     }
                     else{
                         $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = $DB_column + $DB_value WHERE device_name = '{$device_array['device_name']}'";
