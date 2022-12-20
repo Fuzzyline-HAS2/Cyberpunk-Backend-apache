@@ -124,6 +124,7 @@
                 mysqli_query($conn, $select);
                 break;
             default : 
+                //iot글러브일때
                 if($device_array['device_type'] == 'iotglove'){
                     if($DB_column == 'device_state' || $DB_column == 'game_state'){
                         $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
@@ -158,7 +159,8 @@
                             //술래 찾아내기 
                             $select = "SELECT device_name,role,location FROM {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." WHERE role = 'tagger'";
                             $player_array = mysqli_fetch_assoc(mysqli_query($conn, $select));
-                            if($player_array['location'] == $DB_value){ //같은방일때 vibe=2
+                            //같은방일때 vibe=2
+                            if($player_array['location'] == $DB_value){ 
                                 $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET vibe = 2 WHERE device_name = '{$theme_array['device_name']}'";
                                 mysqli_query($conn, $select);
                             }
@@ -167,14 +169,21 @@
                                 mysqli_query($conn, $select);
                             }
                         }
-                        // $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
-
                     }
-                    else{
+                    else if($DB_column == 'message_sender'){
+                        $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                        mysqli_query($conn, $select);
+                    }
+                    else if($DB_column == 'message_code'){
+                        $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET message_code = {$DB_value} WHERE device_name = '{$device_array['device_name']}'";
+                        mysqli_query($conn, $select);
+                    }
+                    else{//$DB_column이 위의 경우가 아닐때
                         $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = $DB_column + $DB_value WHERE device_name = '{$device_array['device_name']}'";
                     }
                 }
-                else{
+                //iotglove가 아닐때
+                else{ 
                     if($DB_column == 'device_state' || $DB_column == 'game_state'){
                         $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
                     }
