@@ -18,7 +18,8 @@
     - [generator](#generator)
     - [escapemachine](#escapemachine)
     - [temple](#temple)
-
+    - [iotglove](#iotglove)
+    
 ### 실행 방법
 
 ## gitbash를 이용해 최신 버전 pull하기
@@ -259,7 +260,8 @@ restore를 통해 로컬 변경상황을 제거한 뒤 pull을 해주면 된다.
     `setting`|**네오픽셀 흰색, setting모드**| VARCHAR(String) | 흰색
     `ready` |**네오픽셀 빨간색, ready모드**| VARCHAR(String) | 빨간색
     `activate` |**네오픽셀 노란색, activate모드**| VARCHAR(String) | 노란색
-    `takenchip_max`|**술래승리**| VARCHAR(String) | 보라색
+    `blink`|**술래활성화 전**| VARCHAR(String) | 보라색
+    `takenchip_max`|**제단 칩 10으로 채워줌->생존자패배**| VARCHAR(String) | 보라색
     `player_win` |**생존자승리**| VARCHAR(String) | 초록색
     `player_lose` |**생존자패배**| VARCHAR(String) | 보라색
     
@@ -268,5 +270,96 @@ restore를 통해 로컬 변경상황을 제거한 뒤 pull을 해주면 된다.
     명령어 | 내용 |자료형| 색 
     :-----: | :-----: | :-----: | :-----:
     `mtm`|**강제술래승리**| VARCHAR(String) | 보라색
+    
+ ### iotglove
+ 
+  - game_state
+  
+    명령어 | 내용 |자료형| 색 
+    :-----: | :-----: | :-----: | :-----:
+    `setting`|**네오픽셀 흰색, setting모드**| VARCHAR(String) | 흰색
+    `ready` |**네오픽셀 빨간색, ready모드**| VARCHAR(String) | 빨간색
+    `activate` |**네오픽셀 노란색, activate모드**| VARCHAR(String) | 노란색
+
+  - device_state
+
+    명령어 | 내용 |자료형| 색 
+    :-----: | :-----: | :-----: | :-----:
+    `setting`|**네오픽셀 흰색, setting모드**| VARCHAR(String) | 흰색
+    `ready` |**네오픽셀 빨간색, ready모드**| VARCHAR(String) | 빨간색
+    `activate` |**네오픽셀 노란색, activate모드**| VARCHAR(String) | 노란색
+    `blink`|**술래활성화 전**| VARCHAR(String) | 보라색
+    `player_win` |**생존자승리**| VARCHAR(String) | 초록색
+    `player_lose` |**생존자패배**| VARCHAR(String) | 보라색
+   
+  - role
+
+    명령어 | 내용 |자료형
+    :-----: | :-----: | :-----:
+    `neutral`|**선택되지않은 iotglove**| VARCHAR(String)
+    `player` |**생존자**| VARCHAR(String)
+    `tagger` |**술래**| VARCHAR(String)
+
+  - life_chip
+    (다른 숫자도 가능)
+    명령어 | 내용 |자료형
+    :-----: | :-----: | :-----:
+    `+1`|**현재 보유 생존칩 + 1**| INT
+    `-1` |**현재 보유 생존칩 - 1**| INT
+
+  - taken_chip
+    (다른 숫자도 가능)
+    명령어 | 내용 |자료형
+    :-----: | :-----: | :-----:
+    `+1`|**술래가 현재 뺏은 생존칩 + 1**| INT
+    `-1` |**술래가 현재 뺏은 생존칩 - 1**| INT
+    
+  - battery_pack
+    (다른 숫자도 가능)
+    명령어 | 내용 |자료형
+    :-----: | :-----: | :-----:
+    `+1`|**현재 보유 배터리팩 + 1**| INT
+    `-1` |**현재 보유 배터리팩  - 1**| INT
+    
+  - exp
+    (다른 숫자도 가능)
+    명령어 | 내용 |자료형
+    :-----: | :-----: | :-----:
+    `+1`|**exp + 1**| INT
+    `-1` |**exp - 1**| INT
+    
+  - location
+  
+    장소 입력.
+    명령어 | 내용 |자료형
+    :-----: | :-----: | :-----:
+    `bar`|**위치를 bar로 변경**| VARCHAR(String)
+    `house` |**위치를 house로**| VARCHAR(String)
+
+  - tagger_name
+  
+    술래가 제단에 태그할 때 tagger_name iotglove로 전송
+    명령어 | 내용 |자료형
+    :-----: | :-----: | :-----:
+    `G1P1`|**술래의 이름 = G1P1**| VARCHAR(String)
+
+  - message_sender
+  
+    플레이어가 메시지 전송할 때 메시지를 받을 플레이어 이름 입력
+    ```
+    has2wifi.Send("G3P1","message_sender",(String)(const char *)my["device_name"]);
+    ```
+    
+    G3P1에게 전송자 iotglove 이름 전송.
+    
+  - message_code
+  
+    플레이어가 전송할 메시지와 받을 플레이어 입력
+    ```        
+    has2wifi.Send("G3P1","message_code","1");
+    ```
+    G3P1에게 메시지 1을 전송.
+    
+    
 
 작성자 : 안혜수
