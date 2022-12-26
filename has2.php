@@ -154,6 +154,8 @@
                                     $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET vibe = 0 WHERE device_name = '".substr($device_array['device_name'],0,2)."P".$i."'";
                                     mysqli_query($conn, $select);
                                 }
+                                $select = "UPDATE device SET shift_machine = 2 WHERE device_name = '".substr($device_array['device_name'],0,2)."P".$i."'";
+                                    mysqli_query($conn, $select);
                             }
                         }
                         //위치 변경된 iotglove가 생존자(player)일 때
