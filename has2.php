@@ -182,6 +182,10 @@
                         $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET message_code = {$DB_value} WHERE device_name = '{$device_array['device_name']}'";
                         mysqli_query($conn, $select);
                     }
+                    else if($DB_column == 'role'){ //iotglove 역할 변경
+                        $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET role = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                        mysqli_query($conn, $select);
+                    }
                     else{//$DB_column이 위의 경우가 아닐때 (보통 life_chip, battery_pack, exp등 누적해서 더해야하는 경우의 컬럼)
                         $select = "UPDATE {$device_array['device_type']}_".substr($device_array['device_name'],0,2)." SET $DB_column = $DB_column + $DB_value WHERE device_name = '{$device_array['device_name']}'";
                     }
