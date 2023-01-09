@@ -195,6 +195,9 @@
                     if($DB_column == 'device_state' || $DB_column == 'game_state'){ //ESP에서 device_state 혹은 game_state를 변경할 때 처리해주는 부분
                         $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
                     }
+                    if($DB_column == 'tag_player'){ //덕트에서 tag_player를 send할 때 
+                        $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                    }
                     else{//life_chip, battery_pack, exp등 누적해서 더해야하는 경우의 컬럼
                         $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = $DB_column + $DB_value WHERE device_name = '{$device_array['device_name']}'";
                     }
