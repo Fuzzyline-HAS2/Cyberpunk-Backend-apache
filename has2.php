@@ -6,12 +6,13 @@
     $DBname = "has2";
 
     //ESP에서 전송하는 정보를 저장하는 변수
-    $DB_request = $_GET["request"];
-    $DB_table = $_GET["table"];
-    $DB_key = $_GET["key"];
-    $DB_mac = $_GET["mac"];
-    $DB_column = $_GET["column"];
-    $DB_value = $_GET["value"];
+    $DB_request = $_GET["request"]; //어떤 요청을 하는가? ReceiveMine,Receive,ReceiveMP3,Loop,Send
+    $DB_table = $_GET["table"]; //어떤 테이블을 사용하는가? - 기본적으로 device 테이블을 사용
+    $DB_key = $_GET["key"]; //PK로 설정된 column. 기본적으로 device_name을 가리킴
+    $DB_mac = $_GET["mac"]; //device MAC 주소. 요청 보낸 장치의 MAC
+    //Send에서만 사용하는 변수
+    $DB_column = $_GET["column"]; //변경할 column
+    $DB_value = $_GET["value"]; //column 값
 
     //mysql server에 연결하는 함수 
     $conn = mysqli_connect($DBhost,$DBuser,$DBpasswd,$DBname);
@@ -194,8 +195,14 @@
                 else{ 
                     if($DB_column == 'device_state' || $DB_column == 'game_state'){ //ESP에서 device_state 혹은 game_state를 변경할 때 처리해주는 부분
                         $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
+                        mysqli_query($conn, $select);
+                        if($device_array['device_type'] === 'temple' && $DB_value === 'activate'){
+                            $select = "UPDATE {$device_array['theme']}_revivalmachine SET device_state = 'ready_activate' WHERE device_state = 'ready'";
+                            mysqli_query($conn, $select);
+                            $select = "UPDATE $DB_table SET shift_machine = {$device_array['shift_machine']} + 1 WHERE device_type = 'revivalmachine'";
+                        }
                     }
-                    if($DB_column == 'tag_player'){ //덕트에서 tag_player를 send할 때 
+                    else if($DB_column == 'tag_player'){ //덕트에서 tag_player를 send할 때 
                         $select = "UPDATE {$device_array['theme']}_{$device_array['device_type']} SET $DB_column = '{$DB_value}' WHERE device_name = '{$device_array['device_name']}'";
                     }
                     else{//life_chip, battery_pack, exp등 누적해서 더해야하는 경우의 컬럼
